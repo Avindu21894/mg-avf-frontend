@@ -1,0 +1,29 @@
+<nav class="navbar navbar-expand-custom navbar-mainbg">
+  <a class="navbar-brand navbar-logo">Research Portal</a>
+
+  <button class="navbar-toggler"
+          type="button"
+          aria-label="Toggle navigation"
+          (click)="toggleMenu()">
+    <i class="bi bi-list" style="color: white;"></i>
+  </button>
+
+  <div #navbar
+       id="navbarSupportedContent"
+       class="collapse navbar-collapse"
+       [class.show]="isMenuOpen">
+    <ul class="navbar-nav ml-auto" (click)="setActive($event)">
+      <div #selector class="hori-selector">
+        <div class="left"></div>
+        <div class="right"></div>
+      </div>
+
+      <li class="nav-item active"><a class="nav-link" href="#home">Home</a></li>
+      <li class="nav-item"><a class="nav-link" href="#research-team">Research Team</a></li>
+      <li class="nav-item"><a class="nav-link" href="#architecture-overview">Architecture Overview</a></li>
+      <li class="nav-item"><a class="nav-link" href="#source-code">Source Code & Reproducibility</a></li>
+      <li class="nav-item"><a class="nav-link" href="#key-figures">Key Figures</a></li>
+      <li class="nav-item"><a class="nav-link" href="#results">Results</a></li>
+    </ul>
+  </div>
+</nav>

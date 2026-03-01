@@ -1,0 +1,393 @@
+<div class="mg-avf-container">
+  <div class="fixed-header">
+    <header class="header">
+      <h1 class="title">
+        Unsupervised Multi-Granular Transformer<br />
+        Framework for
+        <span class="highlight">Sinhala Audio-Visual Deepfake Forensics</span>
+      </h1>
+    </header>
+
+    <div *ngIf="showResults" class="report-header">
+      <h2 class="report-title">Deepfake Analysis Report</h2>
+      <div class="buttons-group">
+        <button class="home-btn" (click)="backToHome()">
+          <i
+            style="font-size: 16px; color: white"
+            class="bi bi-house-door-fill"
+          ></i>
+        </button>
+        <button class="download-btn" (click)="downloadReport()">
+          Download
+          <i
+            style="font-size: 16px; color: white"
+            class="bi bi-cloud-download"
+          ></i>
+        </button>
+        <button class="reset-btn" (click)="resetAnalysis()">
+          Analyze Another Video
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-content">
+    <div *ngIf="!isAnalyzing && !showResults" class="upload-section">
+      <div
+        class="upload-box"
+        (dragover)="onDragOver($event)"
+        (drop)="onDrop($event)"
+        (click)="triggerFileInput()"
+      >
+        <div class="upload-icon">
+          <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M7 18C4.23858 18 2 15.7614 2 13C2 10.2386 4.23858 8 7 8C7.55228 8 8 7.55228 8 7C8 4.23858 10.2386 2 13 2C15.7614 2 18 4.23858 18 7C18 7.55228 18.4477 8 19 8C21.7614 8 24 10.2386 24 13C24 15.7614 21.7614 18 19 18H7Z"
+              fill="#3B82F6"
+            />
+            <path
+              d="M12 12V20M12 12L9 15M12 12L15 15"
+              stroke="#1E40AF"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+        <p class="upload-text">
+          Drop video here or <span class="browse-link">browse</span>
+        </p>
+        <p class="file-name" *ngIf="fileName">{{ fileName }}</p>
+        <input
+          type="file"
+          id="fileInput"
+          accept="video/*"
+          (change)="onFileSelected($event)"
+          style="display: none"
+        />
+      </div>
+      <div class="toggle-container">
+        <label class="toggle-switch">
+          <input
+            type="checkbox"
+            [checked]="isSinhala"
+            (change)="toggleSinhalaMode($event)"
+          />
+          <span class="slider round"></span>
+        </label>
+        <span class="toggle-label" [class.active]="isSinhala">
+          Enable Sinhala Expert Mode
+          <i
+            class="bi bi-info-circle"
+            title="Uses specialized phonetic models for Sinhala language deepfake detection."
+          ></i>
+        </span>
+      </div>
+      <button
+        class="analyze-btn"
+        [disabled]="!selectedFile"
+        (click)="analyzeVideo()"
+      >
+        Analyze Video
+      </button>
+    </div>
+
+    <!-- Analysis Template (Loading) -->
+    <ng-template #analysisTemplate>
+      <div class="analysis-section">
+        <div class="analysis-icon">
+          <img
+            src="assets/images/analysis.gif"
+            alt="Analyzing"
+            class="analysis-gif"
+          />
+        </div>
+      </div>
+    </ng-template>
+
+    <!-- Results Template -->
+    <ng-template #resultsTemplate>
+      <div class="results-section" *ngIf="analysisResult">
+        <div class="info-grid">
+          <div class="info-card">
+            <label>Job Id</label>
+            <p>{{ analysisResult.job_id }}</p>
+          </div>
+          <div class="info-card">
+            <label>Filename</label>
+            <p>{{ analysisResult.metadata.filename }}</p>
+          </div>
+          <div class="info-card">
+            <label>Duration</label>
+            <p>{{ analysisResult.metadata.duration_sec.toFixed(1) }} s</p>
+          </div>
+          <div class="info-card">
+            <label>Frame Count</label>
+            <p>{{ analysisResult.metadata.frame_count }}</p>
+          </div>
+          <div class="info-card">
+            <label>Frame Rate</label>
+            <p>{{ analysisResult.metadata.frame_rate.toFixed(1) }} fps</p>
+          </div>
+          <div class="info-card">
+            <label>Processing Time</label>
+            <p>
+              {{ (analysisResult.metadata.latency_ms / 1000).toFixed(2) }} s
+            </p>
+          </div>
+        </div>
+
+        <div class="verdict-card" [ngClass]="getVerdictClass()">
+          <h3 class="verdict-title">AUTHENTICITY VERDICT</h3>
+          <div class="score-circle">
+            <span class="score"
+              >{{
+                (analysisResult.summary.authenticity_score * 100).toFixed(1)
+              }}%</span
+            >
+          </div>
+          <div class="verdict-status">
+            {{ analysisResult.summary.authenticity_label }}
+          </div>
+          <p class="verdict-details">
+            Max Fusion Score:
+            {{ (analysisResult.summary.max_fusion_score * 100).toFixed(1) }} % |
+            Anomaly Segments:
+            {{ analysisResult.summary.anomaly_segments_count }}
+          </p>
+        </div>
+
+        <div class="fuzzy-card">
+          <h3>Fuzzy Summary Details</h3>
+          <p>
+            Mean Real:
+            {{ analysisResult.summary.fuzzy_summary.mean_real.toFixed(2) }}
+          </p>
+          <p>
+            Mean Borderline:
+            {{
+              analysisResult.summary.fuzzy_summary.mean_borderline.toFixed(2)
+            }}
+          </p>
+          <p>
+            Mean Fake:
+            {{ analysisResult.summary.fuzzy_summary.mean_fake.toFixed(2) }}
+          </p>
+          <p>
+            Borderline Frames:
+            {{ analysisResult.summary.fuzzy_summary.borderline_frames }}
+          </p>
+          <h3>Fuzzy Explanations</h3>
+          <ul>
+            <li
+              *ngFor="
+                let ex of analysisResult.summary.fuzzy_summary.explanation
+              "
+            >
+              {{ ex }}
+            </li>
+          </ul>
+        </div>
+<!-- 
+        <div
+          class="anomaly-timeline"
+          *ngIf="analysisResult.timeline.anomaly_bands.length > 0"
+        >
+          <h3 class="section-title">Anomaly Timeline</h3>
+          <div class="timeline-container">
+            <div class="timeline-bar"></div>
+            <div
+              *ngFor="let band of analysisResult.timeline.anomaly_bands"
+              class="anomaly-band"
+              [style.left.%]="
+                (band.start_time / analysisResult.metadata.duration_sec) * 100
+              "
+              [style.width.%]="
+                ((band.end_time - band.start_time) /
+                  analysisResult.metadata.duration_sec) *
+                100
+              "
+            >
+              <span class="band-tooltip"
+                >{{ band.start_time.toFixed(2) }} -
+                {{ band.end_time.toFixed(2) }} s (Frames:
+                {{ band.start_frame }} - {{ band.end_frame }})</span
+              >
+            </div>
+          </div>
+        </div> -->
+<!-- <div class="anomaly-timeline" *ngIf="analysisResult.timeline.anomaly_bands.length > 0">
+  <h3 class="section-title">Temporal Forensic Timeline</h3>
+  
+  <div class="timeline-container">
+    <div class="timeline-bar"></div>
+    
+<div
+  *ngFor="let seg of analysisResult.raw_json.anomaly_segments"
+  class="anomaly-band"
+  [style.left.%]="(seg.start_time / analysisResult.metadata.duration_sec) * 100"
+  [style.width.%]="((seg.end_time - seg.start_time) / analysisResult.metadata.duration_sec) * 100"
+  [style.background-color]="seg.max_score > 0.6 ? '#ef4444' : '#f59e0b'"
+  [style.opacity]="(seg.max_score * 0.8) + 0.2" 
+>
+  <span class="band-tooltip">
+    <strong>Verdict: {{ seg.max_score > 0.6 ? 'FAKE' : 'SUSPICIOUS' }}</strong><br>
+    Confidence: {{ (seg.max_score * 100).toFixed(1) }}%<br>
+    Time: {{ seg.start_time.toFixed(2) }}s - {{ seg.end_time.toFixed(2) }}s
+  </span>
+</div>
+  </div>
+
+  <div class="time-markers">
+    <span>0s</span>
+    <span>{{ (analysisResult.metadata.duration_sec / 2).toFixed(1) }}s</span>
+    <span>{{ analysisResult.metadata.duration_sec.toFixed(1) }}s</span>
+  </div>
+</div> -->
+        <div class="analysis-head">
+          <h3 class="section-title">Analysis Head Statistics</h3>
+          <canvas id="radarChart"></canvas>
+        </div>
+
+        <div class="per-head-distributions">
+          <h3 class="section-title">Per-Head Frame-Score Distributions</h3>
+          <div class="dist-grid">
+            <ng-container *ngFor="let head of analysisResult.statistics">
+              <div
+                class="dist-item"
+                *ngIf="isSinhala || head.head !== 'sinhala'"
+              >
+                <label>{{ head.head }}</label>
+                <canvas [id]="getDistChartId(head.head)"></canvas>
+                <small>max = {{ (head.max_score * 100).toFixed(1) }} %</small>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+
+        <div class="heatmaps">
+          <h3 class="section-title">Detection Heatmaps by Analysis Type</h3>
+          <div *ngFor="let key of heatmapKeys()" class="heatmap-item">
+            <label>{{ key | titlecase }}</label>
+            <canvas [id]="'heatmap_' + key" height="40"></canvas>
+          </div>
+        </div>
+
+        <div class="top-frames">
+          <h3 class="section-title">Top Suspicious Frames (Click to Flip)</h3>
+          <div class="frames-grid">
+            <div
+              *ngFor="let frame of analysisResult.top_frames"
+              class="frame-card"
+              (click)="flipFrame(frame.frame_number)"
+              [attr.id]="'frame-card-' + frame.frame_number"
+            >
+              <div class="card-inner">
+                <!-- FRONT -->
+                <div class="card-front">
+                  <p class="frame-number">#{{ frame.frame_number }}</p>
+                  <div class="frame-placeholder">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"
+                        fill="#64748b"
+                      />
+                    </svg>
+                    <span>Click to view</span>
+                  </div>
+                  <p class="frame-score">
+                    Score: {{ (frame.score * 100).toFixed(1) }}%
+                  </p>
+                </div>
+
+                <!-- BACK -->
+                <div class="card-back">
+                  <img
+                    [attr.id]="'frame-img-' + frame.frame_number"
+                    alt="Frame {{ frame.frame_number }}"
+                    class="frame-image"
+                  />
+                  <div
+                    class="loading-spinner"
+                    [attr.id]="'spinner-' + frame.frame_number"
+                  >
+                    <div class="spinner"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="anomaly-segments">
+          <h3 class="section-title">Anomaly Segments</h3>
+          <details>
+            <summary>View Anomaly Segments</summary>
+            <div
+              *ngIf="
+                analysisResult.raw_json.anomaly_segments.length > 0;
+                else noAnomalies
+              "
+            >
+              <table class="segments-table">
+                <thead>
+                  <tr>
+                    <th>Start Frame</th>
+                    <th>End Frame</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Max Score</th>
+                    <th>Mean Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    *ngFor="let seg of analysisResult.raw_json.anomaly_segments"
+                  >
+                    <td>{{ seg.start_frame }}</td>
+                    <td>{{ seg.end_frame }}</td>
+                    <td>{{ seg.start_time.toFixed(2) }} s</td>
+                    <td>{{ seg.end_time.toFixed(2) }} s</td>
+                    <td>{{ (seg.max_score * 100).toFixed(1) }}%</td>
+                    <td>{{ (seg.mean_score * 100).toFixed(1) }}%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <ng-template #noAnomalies>
+              <p>No anomaly segments detected.</p>
+            </ng-template>
+          </details>
+        </div>
+      </div>
+    </ng-template>
+
+    <!-- Render Current Template -->
+    <ng-container *ngIf="currentTemplate">
+      <ng-container *ngTemplateOutlet="currentTemplate"></ng-container>
+    </ng-container>
+  </div>
+
+  <!-- Console -->
+  <div class="console" *ngIf="isTerminalShow">
+    <div
+      class="console-header"
+      style="
+        color: #64748b;
+        font-size: 0.8rem;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #333;
+      "
+    >
+      > MG-AVF FORENSIC TERMINAL_
+    </div>
+    <div class="logs-container">
+      <div *ngFor="let log of terminalLogs" class="console-text">
+        {{ log }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <app-footer-bar></app-footer-bar>
+</div>

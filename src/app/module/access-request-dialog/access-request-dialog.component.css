@@ -1,0 +1,25 @@
+.dialog-container {
+  padding: 20px;
+  max-width: 400px;
+}
+
+.dialog-title {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.dialog-subtitle {
+  font-size: 14px;
+  margin-bottom: 16px;
+  color: gray;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.button-container {
+  display: flex;
+  justify-content: flex-end;
+}

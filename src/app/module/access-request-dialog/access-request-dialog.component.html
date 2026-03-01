@@ -1,0 +1,47 @@
+<div class="dialog-container">
+  <h2 class="dialog-title">Request MG-AVF Access</h2>
+  <p class="dialog-subtitle">Fill in the details below to receive the paper and source code.</p>
+
+  <form (ngSubmit)="onSubmit()">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Full Name *</mat-label>
+      <input matInput [(ngModel)]="fullName" name="fullName" required>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Institution / Company *</mat-label>
+      <input matInput [(ngModel)]="institution" name="institution" required>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Official Email *</mat-label>
+      <input matInput type="email" [(ngModel)]="email" name="email" required>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Intended Use *</mat-label>
+      <mat-select [(ngModel)]="intendedUse" name="intendedUse" required>
+        <mat-option *ngFor="let use of intendedUses" [value]="use">{{ use }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field *ngIf="showOtherField" appearance="outline" class="full-width">
+      <mat-label>Please specify</mat-label>
+      <input matInput [(ngModel)]="otherUse" name="otherUse" required>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Paper / Source Code</mat-label>
+      <input matInput [(ngModel)]="paperSource" name="paperSource">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Additional Details</mat-label>
+      <textarea matInput [(ngModel)]="additionalDetails" name="additionalDetails"></textarea>
+    </mat-form-field>
+
+    <div class="button-container">
+      <button mat-raised-button color="primary" type="submit" [disabled]="!fullName || !institution || !email || !intendedUse || (intendedUse === 'Other' && !otherUse)">Send Request</button>
+    </div>
+  </form>
+</div>
