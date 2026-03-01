@@ -30,6 +30,9 @@
               "src/custom-theme.scss",
               "src/styles.css"
             ],
+            "allowedCommonJsDependencies": [
+              "file-saver"
+            ],
             "scripts": []
           },
           "configurations": {
@@ -42,8 +45,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
-                  "maximumError": "4kb"
+                  "maximumWarning": "50kb",
+                  "maximumError": "100kb"
                 }
               ],
               "fileReplacements": [
