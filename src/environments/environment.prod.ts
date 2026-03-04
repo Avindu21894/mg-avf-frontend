@@ -1,8 +1,7 @@
 export const environment = {
   production: true,
-  baseUrl: ' http://localhost:8000'
+  baseUrl: 'https://reshangayantha-mg-avf.hf.space'
 };
-
 
 /*
 Copyright Google LLC. All Rights Reserved.
