@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
   baseUrl: 'https://reshangayantha-mg-avf.hf.space',
-  hfToken:'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'
+  hfToken: (window as any).env?.HF_TOKEN
 };
 
 /*
