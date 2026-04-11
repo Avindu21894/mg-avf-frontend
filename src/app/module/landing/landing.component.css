@@ -123,7 +123,7 @@
 /* Abstract Section */
 .abstract-section {
   background-color: white;
-  padding: 64px 24px;
+  margin-top: 10px;
 }
 
 .section-container {
@@ -144,14 +144,14 @@
 }
 
 .abstract-text {
-  color: #374151;
-  font-size: 18px;
-  line-height: 1.8;
-  margin-bottom: 24px;
-  position: relative;
-  max-height: 200PX;
-  overflow: hidden;
-  transition: max-height 0.3s ease;
+    color: #374151;
+    font-size: 18px;
+    line-height: 1.8;
+    text-align: justify;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
 }
 .lock-overlay {
   position: absolute;
